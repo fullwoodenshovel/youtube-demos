@@ -1,9 +1,7 @@
-use std::fmt::{Debug, Display};
+use std::fmt::Display;
 
-use macroquad::math::Vec2;
-pub mod for_each;
-pub mod visualise;
-use crate::mat2::Mat2;
+use common::mat2::Mat2;
+use macroquad::prelude::Vec2;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum MatEx {
@@ -82,7 +80,7 @@ pub enum Ex {
     Float(FloatEx)
 }
 
-trait ExTrait: Clone {
+pub trait ExTrait: Clone {
     type Output;
     fn resolve(ex: &Self) -> Self::Output;
 }
@@ -181,6 +179,6 @@ pub fn resolve_vec(ex: &VecEx) -> Vec2 {
 }
 
 #[allow(clippy::borrowed_box)] // This is because this is QOL, not functional.
-fn resolve<T: ExTrait>(ex: &Box<T>) -> T::Output {
+pub fn resolve<T: ExTrait>(ex: &Box<T>) -> T::Output {
     T::resolve(ex.as_ref())
 }

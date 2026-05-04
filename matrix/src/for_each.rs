@@ -1,6 +1,6 @@
 use std::{collections::VecDeque, fmt::Display};
 
-use crate::parse::{resolve_mat, resolve_float, resolve_vec};
+use crate::{resolve_mat, resolve_float, resolve_vec};
 
 use super::{FloatEx, VecEx, MatEx, Ex, Obj};
 

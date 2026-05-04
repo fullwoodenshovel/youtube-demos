@@ -1,10 +1,11 @@
 [package]
-name = "common"
+name = "common-matrix"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
 macroquad = "0.4.14"
+common = { path = "../common" }
 
 [features]
 debug_points = []

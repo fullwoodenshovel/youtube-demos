@@ -1,10 +1,8 @@
 use std::f32::consts::PI;
-
 use macroquad::prelude::*;
-
-use crate::{mat2::{I, Mat2}, parse::Obj, transform::Transform};
-
-use super::{Ex, MatEx, VecEx, FloatEx, resolve, for_each::{for_each, ExPointer}};
+use common::{mat2::{I, Mat2}, transform::Transform};
+use crate::{Ex, MatEx, VecEx, FloatEx, resolve, for_each::{for_each, ExPointer}};
+use super::*;
 
 pub fn smooth_step(frac: f32) -> f32 {
     frac * frac * (3.0 - 2.0 * frac)
