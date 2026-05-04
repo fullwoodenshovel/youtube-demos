@@ -1,4 +1,4 @@
-use std::{fmt::Debug, ops::{Add, Div, Mul, Neg, Sub}};
+use std::{fmt::{Debug, Display}, ops::{Add, Div, Mul, Neg, Sub}};
 
 use macroquad::math::Vec2;
 
@@ -9,9 +9,15 @@ pub struct Mat2 {
 
 pub const I: Mat2 = Mat2::new(1.0, 0.0, 0.0, 1.0);
 
-impl Debug for Mat2 {
+impl Display for Mat2 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.data.fmt(f)
+    }
+}
+
+impl Debug for Mat2 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        Display::fmt(self, f)
     }
 }
 

@@ -33,7 +33,6 @@ pub fn visualise_obj(obj: Obj, transform: &mut Transform, background: bool) {
 }
 
 pub fn visualise(index: usize, time: f32, ex: &Ex, transform: &mut Transform) -> bool {
-
     let indexed = for_each(ex, true, false)[index].0;
     let anim_done = visualise_individual(time, indexed, transform);
     if !anim_done {
@@ -65,7 +64,7 @@ pub fn display_background(transform: &Transform) {
     draw_line(0.0, y, transform.screen_dims[0], y, 2.0, LIGHTGRAY);
 }
 
-fn lerp_colours(start: Color, end: Color, frac: f32) -> Color {
+pub fn lerp_colours(start: Color, end: Color, frac: f32) -> Color {
     Color::from_vec(end.to_vec() * frac + (1.0 - frac) * start.to_vec())
 }
 
@@ -1150,25 +1149,25 @@ pub fn visualise_individual(time: f32, ex: ExPointer, transform: &mut Transform)
     }
 }
 
-fn display_mat_background(mat: Mat2, transform: &Transform) {
+pub fn display_mat_background(mat: Mat2, transform: &Transform) {
     display_mat_background_with_col(mat, transform, LIGHTGRAY, GRAY);
 }
 
-fn display_mat_foreground(mat: Mat2, transform: &mut Transform, labeli: &str, labelj: &str) {
+pub fn display_mat_foreground(mat: Mat2, transform: &mut Transform, labeli: &str, labelj: &str) {
     display_mat_foreground_with_col(mat, transform, labeli, labelj, GOLD);
 }
 
-fn display_mat_foreground_with_col(mat: Mat2, transform: &mut Transform, labeli: &str, labelj: &str, colour: Color) {
+pub fn display_mat_foreground_with_col(mat: Mat2, transform: &mut Transform, labeli: &str, labelj: &str, colour: Color) {
     display_vec_with_col(mat * vec2(1.0, 0.0), transform, labeli, colour);
     display_vec_with_col(mat * vec2(0.0, 1.0), transform, labelj, colour);
 }
 
-fn display_mat_all(mat: Mat2, transform: &mut Transform, labeli: &str, labelj: &str) {
+pub fn display_mat_all(mat: Mat2, transform: &mut Transform, labeli: &str, labelj: &str) {
     display_mat_background(mat, transform);
     display_mat_foreground(mat, transform, labeli, labelj);
 }
 
-fn display_mat_background_with_col(mat: Mat2, transform: &Transform, axis: Color, others: Color) {
+pub fn display_mat_background_with_col(mat: Mat2, transform: &Transform, axis: Color, others: Color) {
     if mat.det() == 0.0 {
         let dir = {
             let trial = mat * vec2(1.0, 0.0);
@@ -1209,19 +1208,19 @@ fn display_mat_background_with_col(mat: Mat2, transform: &Transform, axis: Color
     }
 }
 
-fn display_vec(vec: Vec2, transform: &mut Transform, label: &str) {
+pub fn display_vec(vec: Vec2, transform: &mut Transform, label: &str) {
     display_vec_with_col(vec, transform, label, DARKBLUE);
 }
 
-fn display_vec_with_col(vec: Vec2, transform: &mut Transform, label: &str, colour: Color) {
+pub fn display_vec_with_col(vec: Vec2, transform: &mut Transform, label: &str, colour: Color) {
     display_vec_offset_with_col(vec, vec2(0.0, 0.0), transform, label, colour);
 }
 
-fn display_vec_offset(vec: Vec2, offset: Vec2, transform: &mut Transform, label: &str) {
+pub fn display_vec_offset(vec: Vec2, offset: Vec2, transform: &mut Transform, label: &str) {
     display_vec_offset_with_col(vec, offset, transform, label, DARKBLUE);
 }
 
-fn display_vec_offset_with_col(vec: Vec2, offset: Vec2, transform: &mut Transform, label: &str, colour: Color) {
+pub fn display_vec_offset_with_col(vec: Vec2, offset: Vec2, transform: &mut Transform, label: &str, colour: Color) {
     let normalized = vec.normalize_or(vec2(1.0, 0.0));
     let normalized = vec2(normalized.x, -normalized.y);
     let arrow_multiplier = (transform.scale * vec.length()).min(20.0) / 20.0;
@@ -1243,22 +1242,22 @@ fn display_vec_offset_with_col(vec: Vec2, offset: Vec2, transform: &mut Transfor
     transform.point_of_interest(offset);
 }
 
-fn display_point(point: Vec2, transform: &mut Transform, label: &str, colour: Color, size: f32) {
+pub fn display_point(point: Vec2, transform: &mut Transform, label: &str, colour: Color, size: f32) {
     let pos = transform.world_to_screen(point);
     draw_circle(pos.x, pos.y, size, colour);
     draw_text(label, pos.x, pos.y + 15.0 + size, 26.0 * size / 5.0, colour);
     transform.point_of_interest(point);
 }
 
-fn display_float(float: f32, transform: &mut Transform) {
+pub fn display_float(float: f32, transform: &mut Transform) {
     display_float_with_col(float, transform, RED);
 }
 
-fn display_float_with_col(float: f32, transform: &mut Transform, colour: Color) {
+pub fn display_float_with_col(float: f32, transform: &mut Transform, colour: Color) {
     display_point(vec2(float, 0.0), transform, &float.to_string(), colour, 5.0)
 }
 
-fn display_arc(center: Vec2, radius: f32, start_angle: f32, angle: f32, colour: Color, head: bool, transform: &mut Transform) {
+pub fn display_arc(center: Vec2, radius: f32, start_angle: f32, angle: f32, colour: Color, head: bool, transform: &mut Transform) {
     transform.point_of_interest(Vec2::from_angle(start_angle) * radius);
     transform.point_of_interest(Vec2::from_angle(start_angle + angle) * radius);
     

@@ -1,14 +1,4 @@
-[package]
-name = "matrix-visualiser"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]
-macroquad = "0.4.14"
-
-[target.'cfg(unix)'.dependencies]
-input_handler = "0.1"
-
-[features]
-debug_points = []
-touchscreen = []
+[workspace]
+members = [
+    "common"
+]

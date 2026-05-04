@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 use macroquad::prelude::*;
 
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Copy, Debug)]
 pub struct Transform {
     offset: Vec2,
     /// The screen width / height of one in-game unit. how many pixels in one unit
