@@ -1,5 +1,6 @@
 [workspace]
 members = [
     "common",
-    "common-matrix"
+    "common-matrix",
+    "matrix/vector-addition",
 ]
