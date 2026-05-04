@@ -1,0 +1,8 @@
+[
+  {
+    "key": "ctrl+shift+q",
+    "command": "workbench.action.tasks.runTask",
+    "args": "Release: Interactive",
+    "when": "editorTextFocus"
+  }
+]

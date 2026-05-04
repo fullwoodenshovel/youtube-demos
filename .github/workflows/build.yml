@@ -1,0 +1,299 @@
+name: Build releases
+
+permissions:
+  contents: write
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  # First job to extract version from tag
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.extract_version.outputs.version }}
+    steps:
+      - name: Checkout with full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Get all history for git log
+
+      - name: Extract version from tag
+        id: extract_version
+        run: |
+          # Remove 'v' prefix from tag (v1.0.0 → 1.0.0)
+          TAG_NAME="${GITHUB_REF#refs/tags/}"
+          VERSION="${TAG_NAME#v}"  # Remove leading 'v'
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Extracted version: $VERSION"
+
+  # Linux build with ZIP
+  build-linux:
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwayland-dev \
+            libxkbcommon-dev \
+            libegl1-mesa-dev \
+            libx11-dev \
+            pkg-config
+
+      - name: Build for Linux
+        run: cargo build --release
+
+      - name: Create Linux package
+        run: |
+          VERSION="${{ needs.prepare.outputs.version }}"
+          
+          # Create folder structure
+          mkdir -p "matrix-visualiser-v${VERSION}-linux/matrix-visualiser"
+          
+          # Copy executable
+          cp target/release/matrix-visualiser "matrix-visualiser-v${VERSION}-linux/matrix-visualiser/"
+          
+          # Create README (FIXED: use shell variable)
+          cat > "matrix-visualiser-v${VERSION}-linux/matrix-visualiser/README.txt" << EOF
+          Redriddles v${VERSION}
+
+          Just extract this folder anywhere and run the executable!
+          
+          To run:
+          1. Open terminal in this folder
+          2. Make executable: chmod +x matrix-visualiser
+          3. Run: ./matrix-visualiser
+          
+          Notes:
+          - You can move this folder anywhere
+          - Delete the folder to uninstall
+          EOF
+          
+          # Make executable
+          chmod +x "matrix-visualiser-v${VERSION}-linux/matrix-visualiser/matrix-visualiser"
+          
+          # Create ZIP
+          cd "matrix-visualiser-v${VERSION}-linux"
+          zip -r "../matrix-visualiser-v${VERSION}-linux-x86_64.zip" "matrix-visualiser"
+          cd ..
+
+      - name: Upload Linux package
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-package
+          path: "matrix-visualiser-v${{ needs.prepare.outputs.version }}-linux-x86_64.zip"
+
+  # Windows build with ZIP
+  build-windows:
+    needs: prepare
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build for Windows
+        run: cargo build --release
+
+      - name: Create Windows package
+        shell: bash
+        run: |
+          VERSION="${{ needs.prepare.outputs.version }}"
+          
+          # Create folder structure
+          mkdir -p "matrix-visualiser-v${VERSION}-windows/matrix-visualiser"
+          
+          # Copy executable
+          cp target/release/matrix-visualiser.exe "matrix-visualiser-v${VERSION}-windows/matrix-visualiser/"
+          
+          # Create README
+          cat > "matrix-visualiser-v${VERSION}-windows/matrix-visualiser/README.txt" << EOF
+          Redriddles v${VERSION}
+
+          Just extract this folder anywhere and run matrix-visualiser.exe!
+          
+          To run:
+          Double-click matrix-visualiser.exe
+          
+          Notes:
+          - You can move this folder anywhere
+          - Delete the folder to uninstall
+          EOF
+
+          # Install zip if not available
+          if ! command -v zip &> /dev/null; then
+            echo "Installing zip..."
+            choco install zip -y || apt-get install -y zip || brew install zip || true
+          fi
+          
+          # Create ZIP
+          cd "matrix-visualiser-v${VERSION}-windows"
+          zip -r "../matrix-visualiser-v${VERSION}-windows-x86_64.zip" "matrix-visualiser"
+          cd ..
+
+      - name: Upload Windows package
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-package
+          path: "matrix-visualiser-v${{ needs.prepare.outputs.version }}-windows-x86_64.zip"
+
+  # macOS Universal build with ZIP
+  build-macos-universal:
+    needs: prepare
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust with both macOS targets
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-apple-darwin,aarch64-apple-darwin
+
+      # Build for Intel Macs
+      - name: Build for macOS (Intel)
+        run: cargo build --release --target x86_64-apple-darwin
+
+      # Build for Apple Silicon Macs
+      - name: Build for macOS (ARM)
+        run: cargo build --release --target aarch64-apple-darwin
+
+      # Create universal binary
+      - name: Create universal macOS binary
+        run: |
+          lipo -create \
+            target/x86_64-apple-darwin/release/matrix-visualiser \
+            target/aarch64-apple-darwin/release/matrix-visualiser \
+            -output "matrix-visualiser-universal"
+          
+          # Remove quarantine attribute
+          xattr -c "matrix-visualiser-universal"
+
+      - name: Create macOS package
+        run: |
+          VERSION="${{ needs.prepare.outputs.version }}"
+          
+          # Create folder structure
+          mkdir -p "matrix-visualiser-v${VERSION}-macos/matrix-visualiser"
+          
+          # Copy executable
+          cp "matrix-visualiser-universal" "matrix-visualiser-v${VERSION}-macos/matrix-visualiser/matrix-visualiser"
+          
+          # Make executable
+          chmod +x "matrix-visualiser-v${VERSION}-macos/matrix-visualiser/matrix-visualiser"
+          
+          # Create README
+          cat > "matrix-visualiser-v${VERSION}-macos/matrix-visualiser/README.txt" << EOF
+          Redriddles v${VERSION}
+
+          Just extract this folder anywhere and run the executable!
+          
+          To run (first time):
+          1. Right-click the 'matrix-visualiser' file
+          2. Select "Open"
+          3. Click "Open" in the warning dialog
+          
+          Or from Terminal:
+          1. Open terminal in this folder
+          2. Run: ./matrix-visualiser
+          
+          Notes:
+          - You can move this folder anywhere
+          - Delete the folder to uninstall
+          EOF
+          
+          # Create ZIP
+          cd "matrix-visualiser-v${VERSION}-macos"
+          zip -r "../matrix-visualiser-v${VERSION}-macos.zip" "matrix-visualiser"
+          cd ..
+
+      - name: Upload macOS package
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-package
+          path: "matrix-visualiser-v${{ needs.prepare.outputs.version }}-macos.zip"
+
+  # Create the release with all binaries
+  create-release:
+    needs: [prepare, build-linux, build-windows, build-macos-universal]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout with full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Get all history
+
+      - name: Download all packages
+        uses: actions/download-artifact@v4
+        with:
+          path: release-packages
+
+      - name: Create release notes from tag
+        id: release_notes
+        run: |
+          if [ -f "RELEASE_NOTES.md" ]; then
+            echo "Using existing RELEASE_NOTES.md"
+          else
+            echo "No release notes found, creating default"
+          VERSION="${{ needs.prepare.outputs.version }}"
+          cat > RELEASE_NOTES.md << EOF
+          # Redriddles v${VERSION}
+          
+          ## What's new
+          This is stuff important for the end user, basically the technical changes, but summarised and less important changes ignored.
+          These are the new features:
+          
+          - Bug fixes and improvements
+          
+          ## Technical changes
+          These are all of the new commits from this release (ignoring repeats).
+          This may include technical changes, architectural changes, bug fixes, etc:
+          
+          - Bug fixes and improvements
+          
+          ## Downloads
+          
+          ### Windows
+          - **matrix-visualiser-v${VERSION}-windows-x86_64.zip**
+            1. Extract the ZIP
+            2. Open the 'matrix-visualiser' folder
+            3. Double-click matrix-visualiser.exe
+          
+          ### Linux
+          - **matrix-visualiser-v${VERSION}-linux-x86_64.zip**
+            1. Extract the ZIP
+            2. Open the 'matrix-visualiser' folder in terminal
+            3. Run: \`./matrix-visualiser\`
+          
+          ### macOS
+          - **matrix-visualiser-v${VERSION}-macos.zip**
+            1. Extract the ZIP
+            2. Open the 'matrix-visualiser' folder
+            3. Right-click 'matrix-visualiser' and Open (first time only)
+            4. Or run in terminal: \`./matrix-visualiser\`
+          EOF
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release v${{ needs.prepare.outputs.version }}
+          body_path: RELEASE_NOTES.md
+          files: |
+            release-packages/linux-package/matrix-visualiser-v${{ needs.prepare.outputs.version }}-linux-x86_64.zip
+            release-packages/windows-package/matrix-visualiser-v${{ needs.prepare.outputs.version }}-windows-x86_64.zip
+            release-packages/macos-package/matrix-visualiser-v${{ needs.prepare.outputs.version }}-macos.zip
