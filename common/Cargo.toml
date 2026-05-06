@@ -7,5 +7,7 @@ edition = "2024"
 macroquad = "0.4.14"
 
 [features]
+default = ["mousepad_controls"]
 debug_points = []
 touchscreen = []
+mousepad_controls = []

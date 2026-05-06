@@ -1156,8 +1156,8 @@ pub fn display_mat_foreground(mat: Mat2, transform: &mut Transform, labeli: &str
 }
 
 pub fn display_mat_foreground_with_col(mat: Mat2, transform: &mut Transform, labeli: &str, labelj: &str, colour: Color) {
-    display_vec_with_col(mat * vec2(1.0, 0.0), transform, labeli, colour);
-    display_vec_with_col(mat * vec2(0.0, 1.0), transform, labelj, colour);
+    display_vec_with_col(mat.i(), transform, labeli, colour);
+    display_vec_with_col(mat.j(), transform, labelj, colour);
 }
 
 pub fn display_mat_all(mat: Mat2, transform: &mut Transform, labeli: &str, labelj: &str) {
@@ -1168,9 +1168,9 @@ pub fn display_mat_all(mat: Mat2, transform: &mut Transform, labeli: &str, label
 pub fn display_mat_background_with_col(mat: Mat2, transform: &Transform, axis: Color, others: Color) {
     if mat.det() == 0.0 {
         let dir = {
-            let trial = mat * vec2(1.0, 0.0);
+            let trial = mat.i();
             if trial.x.abs() < f32::EPSILON && trial.y.abs() < f32::EPSILON {
-                mat * vec2(0.0, 1.0)
+                mat.j()
             } else {
                 trial
             }
@@ -1201,8 +1201,8 @@ pub fn display_mat_background_with_col(mat: Mat2, transform: &Transform, axis: C
             }
         }
     
-        transform.draw_line(mat * vec2(-1.0, 0.0), mat * vec2(1.0, 0.0), 2.0, axis);
-        transform.draw_line(mat * vec2(0.0, -1.0), mat * vec2(0.0, 1.0), 2.0, axis);
+        transform.draw_line(mat * vec2(-1.0, 0.0), mat.i(), 2.0, axis);
+        transform.draw_line(mat * vec2(0.0, -1.0), mat.j(), 2.0, axis);
     }
 }
 
