@@ -128,6 +128,12 @@ impl Transform {
     }
 }
 
+impl Default for Transform {
+    fn default() -> Self {
+        Self::new(vec2(0.0, 0.0), 1.0)
+    }
+}
+
 /// Finds the two points on rect where the line through the origin and p intersect it.
 pub fn line_rect_intersections(rect: Rect, p1: Vec2, p2: Vec2) -> Option<(Vec2, Vec2)> {
     let dir = p2 - p1;

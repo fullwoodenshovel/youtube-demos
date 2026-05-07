@@ -1,16 +1,9 @@
+use common::helpers::{smooth_step, smoother_step};
 use std::f32::consts::PI;
 use macroquad::prelude::*;
 use common::{mat2::{I, Mat2}, transform::Transform};
-use crate::{Ex, MatEx, VecEx, FloatEx, resolve, for_each::{for_each, ExPointer}};
-use super::*;
-
-pub fn smooth_step(frac: f32) -> f32 {
-    frac * frac * (3.0 - 2.0 * frac)
-}
-
-pub fn smoother_step(frac: f32) -> f32 {
-    smooth_step(smooth_step(frac))
-}
+use crate::types::{Ex, FloatEx, MatEx, Obj, VecEx, resolve};
+use crate::for_each::{for_each, ExPointer};
 
 pub fn visualise_obj(obj: Obj, transform: &mut Transform, background: bool) {
     if background {

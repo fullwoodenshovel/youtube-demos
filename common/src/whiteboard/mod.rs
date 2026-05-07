@@ -131,7 +131,10 @@ impl Whiteboard {
             self.clear();
         }
 
-
+        if ctrl && is_key_pressed(KeyCode::X) {
+            let _lock = lock_camera(&self.screen);
+            self.clear();
+        }
 
         const DRAW_SIZE: f32 = 5.0;
         const REMOVE_SIZE: f32 = 80.0;

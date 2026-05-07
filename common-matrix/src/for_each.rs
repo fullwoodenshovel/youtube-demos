@@ -1,8 +1,6 @@
 use std::{collections::VecDeque, fmt::Display};
 
-use crate::{resolve_mat, resolve_float, resolve_vec};
-
-use super::{FloatEx, VecEx, MatEx, Ex, Obj};
+use super::types::{FloatEx, VecEx, MatEx, Ex, Obj, resolve_mat, resolve_float, resolve_vec};
 
 
 #[derive(Copy, Clone, PartialEq, Debug)]
