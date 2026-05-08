@@ -46,7 +46,6 @@ fn decompose_vec(frame_data: FrameData) -> bool {
 }
 
 fn interactive_decomposition(frame_data: FrameData) -> bool {
-    println!("ID");
     static VEC: LazyLock<Mutex<Vec2>> = LazyLock::new(|| Mutex::new(vec2(3.0, 5.0)));
     let mut vec = VEC.lock().unwrap();
 

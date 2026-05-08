@@ -2,5 +2,5 @@
 members = [
     "common",
     "common-matrix",
-    "matrix/vector-addition",
+    "matrix/example",
 ]

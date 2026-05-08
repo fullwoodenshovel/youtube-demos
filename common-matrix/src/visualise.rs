@@ -40,14 +40,18 @@ pub fn display_background(transform: &Transform) {
     let pos = rect.point().floor().as_i64vec2() - 1;
     let size = rect.size().ceil().as_i64vec2() + 2;
 
-    for x in pos.x..pos.x + size.x {
-        let x = transform.world_to_screen(vec2(x as f32, 0.0)).x;
-        draw_line(x, 0.0, x, transform.screen_dims[1], 2.0, DARKGRAY);
-    }
-    
-    for y in pos.y..pos.y + size.y {
-        let y = transform.world_to_screen(vec2(0.0, y as f32)).y;
-        draw_line(0.0, y, transform.screen_dims[0], y, 2.0, DARKGRAY);
+    if transform.scale < 2.0 {
+        draw_rectangle(0.0, 0.0, transform.screen_dims.x, transform.screen_dims.y, DARKGRAY);
+    } else {
+        for x in pos.x..pos.x + size.x {
+            let x = transform.world_to_screen(vec2(x as f32, 0.0)).x;
+            draw_line(x, 0.0, x, transform.screen_dims[1], 2.0, DARKGRAY);
+        }
+        
+        for y in pos.y..pos.y + size.y {
+            let y = transform.world_to_screen(vec2(0.0, y as f32)).y;
+            draw_line(0.0, y, transform.screen_dims[0], y, 2.0, DARKGRAY);
+        }
     }
 
     let Vec2 {x, y} = transform.world_to_screen(vec2(0.0, 0.0));
@@ -1172,28 +1176,31 @@ pub fn display_mat_background_with_col(mat: Mat2, transform: &Transform, axis: C
             return
         }
         transform.draw_line(dir, vec2(0.0, 0.0), 2.0, axis);
+    } else if mat.i().length() * transform.scale < 2.0 || mat.j().length() * transform.scale < 2.0 {
+        clear_background(others);
+    } else if transform.world_to_screen(mat.i()).distance(transform.world_to_screen(mat.j())) < 2.0 ||
+        transform.world_to_screen(vec2(0.0, 0.0)).distance(transform.world_to_screen(mat.i() + mat.j())) < 2.0
+    {
+        draw_rectangle(0.0, 0.0, transform.screen_dims.x, transform.screen_dims.y, others);
     } else {
-        if mat.i().length() * transform.scale < 2.0 || mat.j().length() * transform.scale < 2.0 {
-            clear_background(others);
-        } else {
-            let mut neg_x = -1.0;
-            while transform.draw_line(mat * vec2(neg_x, -1.0), mat * vec2(neg_x, 1.0), 2.0, others) {
-                neg_x -= 1.0;
-            }
-            let mut pos_x = 1.0;
-            while transform.draw_line(mat * vec2(pos_x, -1.0), mat * vec2(pos_x, 1.0), 2.0, others) {
-                pos_x += 1.0;
-            }
-            let mut neg_y = -1.0;
-            while transform.draw_line(mat * vec2(-1.0, neg_y), mat * vec2(1.0, neg_y), 2.0, others) {
-                neg_y -= 1.0;
-            }
-            let mut pos_y = 1.0;
-            while transform.draw_line(mat * vec2(-1.0, pos_y), mat * vec2(1.0, pos_y), 2.0, others) {
-                pos_y += 1.0;
-            }
+        let mut neg_x = -1.0;
+        while transform.draw_line(mat * vec2(neg_x, -1.0), mat * vec2(neg_x, 1.0), 2.0, others) {
+            neg_x -= 1.0;
         }
-    
+        let mut pos_x = 1.0;
+        while transform.draw_line(mat * vec2(pos_x, -1.0), mat * vec2(pos_x, 1.0), 2.0, others) {
+            pos_x += 1.0;
+        }
+        let mut neg_y = -1.0;
+        while transform.draw_line(mat * vec2(-1.0, neg_y), mat * vec2(1.0, neg_y), 2.0, others) {
+            neg_y -= 1.0;
+        }
+        let mut pos_y = 1.0;
+        while transform.draw_line(mat * vec2(-1.0, pos_y), mat * vec2(1.0, pos_y), 2.0, others) {
+            pos_y += 1.0;
+        }
+    }
+    if mat.det() != 0.0 {
         transform.draw_line(mat * vec2(-1.0, 0.0), mat.i(), 2.0, axis);
         transform.draw_line(mat * vec2(0.0, -1.0), mat.j(), 2.0, axis);
     }
