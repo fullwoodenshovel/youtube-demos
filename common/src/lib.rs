@@ -7,5 +7,5 @@ pub mod web;
 
 pub mod prelude {
     pub use super::transform::{Transform, get_screen_dims};
-    pub use super::helpers::{FrameCheck, conf, default_main, mouse_vec, smooth_step};
+    pub use super::helpers::{FrameCheck, FrameData, conf, default_main, mouse_vec, smooth_step};
 }

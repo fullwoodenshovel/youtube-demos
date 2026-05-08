@@ -7,7 +7,9 @@ pub struct Whiteboard {
     commands: Vec<Command>,
     redo: Vec<Command>,
     current_command: Option<Command>,
-    screen: RenderTarget
+    screen: RenderTarget,
+    enabled: bool,
+    overlay: bool
 }
 
 pub enum Command {
@@ -73,16 +75,28 @@ impl Command {
 
 impl Whiteboard {
     pub fn new() -> Self {
-        Self { commands: Vec::new(), redo: Vec::new(), current_command: None, screen: get_empty_surface() }
+        Self { commands: Vec::new(), redo: Vec::new(), current_command: None, screen: get_empty_surface(), enabled: true, overlay: true }
     }
 
     /// This performs the default functions for updating and drawing the whiteboard correctly.
     /// This function should be used after previous drawing calls, so it is drawn ontop of everything,
     /// and the implementation of this function can be used as reference for more specific implementations.
     pub fn default_update(&mut self) {
-        self.update();
-        self.blit_screen();
-        self.handle_controls();
+        if is_key_pressed(KeyCode::Q) {
+            self.clear();
+            self.enabled ^= true;
+        }
+        self.enabled ^= is_key_pressed(KeyCode::W);
+        self.overlay ^= is_key_pressed(KeyCode::O);
+        if self.enabled {
+            self.update();
+            self.blit_screen();
+            self.handle_controls();
+        }
+    }
+
+    pub fn is_enabled(&self) -> bool {
+        self.enabled
     }
 
     /// # Warning
@@ -127,12 +141,10 @@ impl Whiteboard {
         }
 
         if mousepad_check && ctrl {
-            let _lock = lock_camera(&self.screen);
             self.clear();
         }
 
         if ctrl && is_key_pressed(KeyCode::X) {
-            let _lock = lock_camera(&self.screen);
             self.clear();
         }
 
@@ -167,6 +179,9 @@ impl Whiteboard {
             self.blit_all_commands();
         }
 
+        if self.overlay {
+            draw_rectangle( 0.0, 0.0, screen_width(), screen_height(), Color::new(0.0, 0.0, 0.0, 0.5));
+        }
         draw_texture(&self.screen.texture, 0.0, 0.0, WHITE);
         if let Some(command) = &self.current_command {
             command.blit_command();
@@ -195,8 +210,8 @@ impl Whiteboard {
         };
     }
 
-    /// CAERFUL. You need to lock the camera to self.screen
     pub fn clear(&mut self) {
+        let _lock = lock_camera(&self.screen);
         clear_background(BLANK);
         self.redo.clear();
         self.commands.clear();

@@ -1,10 +1,5 @@
 use macroquad::{miniquad::window::screen_size, prelude::*};
-
-use std::sync::{LazyLock, Mutex};
-
-use super::*;
-
-use crate::transform::Transform;
+use crate::{transform::Transform, whiteboard::Whiteboard};
 
 pub fn conf() -> Conf {
     Conf {
@@ -164,26 +159,34 @@ impl Default for Slideshow {
     }
 }
 
-static WHITEBOARD: LazyLock<Mutex<whiteboard::Whiteboard>> = LazyLock::new(|| Mutex::new(whiteboard::Whiteboard::new()));
-
-fn update_whiteboard() {
-    WHITEBOARD.lock().unwrap().default_update();
+pub struct FrameData<'a> {
+    pub time: f32,
+    pub whiteboard: &'a mut Whiteboard,
+    pub transform: &'a mut Transform 
 }
 
-type SlideType = dyn FnMut(&mut Transform,f32) -> bool;
+type SlideType = dyn FnMut(FrameData) -> bool;
 
 pub async fn default_main(mut slides: Vec<Box<SlideType>>) {
     let mut slideshow = Slideshow::new();
+    let mut whiteboard = Whiteboard::new();
     let mut transform = Transform::default();
     loop {
         slideshow.update(&mut transform);
         if slides.len() <= slideshow.visual_number {
             break
         }
-        while slides[slideshow.visual_number](&mut transform, slideshow.time) {
+        while {
+            let frame_data = FrameData {
+                time: slideshow.time,
+                whiteboard: &mut whiteboard,
+                transform: &mut transform
+            };
+            slides.len() > slideshow.visual_number && slides[slideshow.visual_number](frame_data)
+        } {
             slideshow.finish_slide();
         };
-        update_whiteboard();
+        whiteboard.default_update();
         next_frame().await;
     }
 }
